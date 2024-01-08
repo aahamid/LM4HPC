@@ -88,6 +88,31 @@ def llm_generate_starchat(model: str, question: str, **parameters) -> str:
         output = output[:cutoff]
     return output
 
+def llm_generate_tinyllm(model: str, question: str, **parameters) -> str:
+    """
+    Answer the question using the TinyLlama model.
+    """
+    tokenizer = AutoTokenizer.from_pretrained(model)
+    model = AutoModelForCausalLM.from_pretrained(model,
+                                                 load_in_8bit=True,
+                                                 device_map='auto'
+                                                 )
+    system_prompt = "\nBelow is a conversation between a human user and an OpenMP expert.\n"
+    user_prompt = f"\n{question}\n"
+    assistant_prompt = ""
+    full_prompt = system_prompt + user_prompt + assistant_prompt
+    inputs = tokenizer.encode(full_prompt, return_tensors="pt").to('cuda')
+    outputs = model.generate(inputs,
+                             eos_token_id=0,
+                             pad_token_id=0,
+                             max_length=256,
+                             early_stopping=True)
+    output = tokenizer.decode(outputs[0])
+    output = output[len(full_prompt):]
+    if "" in output:
+        cutoff = output.find("")
+        output = output[:cutoff]
+    return output
 
 def llm_generate_codellama(model_name: str, question: str, **parameters) -> str:
     from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -134,5 +159,9 @@ def openmp_question_answering(model: str, question: str, pdf_files: str = '', la
     elif model in CONFIG['openmp_question_answering']['models'] and model.startswith('codellama/'):
         response = llm_generate_codellama(model, question, **parameters)
         return response
+    elif model in CONFIG['openmp_question_answering']['models'] and model.startswith('TinyLlama/'):
+        response = llm_generate_tinyllm(model, question, **parameters)
+        return response
+
     else:
         raise ValueError('Unknown model: {}'.format(model))
