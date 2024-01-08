@@ -14,7 +14,8 @@
             "HuggingFaceH4/starchat-alpha",
             "HuggingFaceH4/starchat-beta",
             "codellama/CodeLlama-7b-Instruct-hf",
-            "codellama/CodeLlama-7b-hf"
+            "codellama/CodeLlama-7b-hf",
+            "TinyLlama/TinyLlama-1.1B-Chat-v0.6"
         ],
         "default_parameters": {
             "dolly2": {
